@@ -201,108 +201,68 @@ function renderizarLista(elementoId, array, tipo) {
 
 // ATUALIZAR GRÁFICO
 function atualizarGrafico(fixas, lazer, compras, extras, sobra) {
-    const ctx = document.getElementById('graficoPizza').getContext('2d');
+    const canvas = document.getElementById('graficoPizza');
+    const ctx = canvas.getContext('2d');
     
     // Destrói gráfico anterior se existir
     if(grafico) {
         grafico.destroy();
+        grafico = null;
     }
     
-    const temDados = fixas > 0 || lazer > 0 || compras > 0 || extras > 0 || sobra > 0;
+    // Filtra apenas valores maiores que zero
+    const labels = [];
+    const values = [];
+    const colors = [];
     
-    if(!temDados) {
-        // Gráfico vazio - mostra mensagem
-        grafico = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Sem dados'],
-                datasets: [{
-                    data: [1],
-                    backgroundColor: ['#e2e8f0'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false }
-                }
-            }
-        });
-        return;
+    if(fixas > 0) { labels.push('Contas Fixas'); values.push(fixas); colors.push('#3182ce'); }
+    if(lazer > 0) { labels.push('Lazer'); values.push(lazer); colors.push('#d69e2e'); }
+    if(compras > 0) { labels.push('Compras'); values.push(compras); colors.push('#805ad5'); }
+    if(extras > 0) { labels.push('Ganhos Extras'); values.push(extras); colors.push('#38a169'); }
+    if(sobra > 0) { labels.push('Sobra'); values.push(sobra); colors.push('#48bb78'); }
+    
+    // Se não tem dados, mostra gráfico vazio
+    if(values.length === 0) {
+        labels.push('Adicione dados');
+        values.push(1);
+        colors.push('#e2e8f0');
     }
     
     grafico = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Contas Fixas', 'Lazer', 'Compras', 'Ganhos Extras', 'Sobra'],
+            labels: labels,
             datasets: [{
-                data: [fixas, lazer, compras, extras, sobra],
-                backgroundColor: [
-                    '#3182ce', // Azul - Fixas
-                    '#d69e2e', // Amarelo - Lazer
-                    '#805ad5', // Roxo - Compras
-                    '#38a169', // Verde - Extras
-                    '#48bb78'  // Verde claro - Sobra
-                ],
+                data: values,
+                backgroundColor: colors,
                 borderColor: '#ffffff',
-                borderWidth: 3,
-                hoverOffset: 10
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            cutout: '60%',
+            maintainAspectRatio: true,
+            cutout: '55%',
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 15,
+                        padding: 12,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        font: {
-                            family: "'Poppins', sans-serif",
-                            size: 12
-                        },
-                        generateLabels: function(chart) {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                                return data.labels.map((label, i) => {
-                                    const value = data.datasets[0].data[i];
-                                    return {
-                                        text: `${label}: ${f(value)}`,
-                                        fillStyle: data.datasets[0].backgroundColor[i],
-                                        hidden: value === 0,
-                                        index: i
-                                    };
-                                }).filter(item => !item.hidden);
-                            }
-                            return [];
-                        }
+                        font: { size: 11 }
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(45, 55, 72, 0.95)',
-                    titleFont: { family: "'Poppins', sans-serif", size: 14, weight: 'bold' },
-                    bodyFont: { family: "'Poppins', sans-serif", size: 13 },
-                    padding: 12,
-                    cornerRadius: 8,
                     callbacks: {
                         label: function(context) {
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const value = context.raw;
-                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                            return ` ${f(value)} (${percentage}%)`;
+                            const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return ` ${f(value)} (${pct}%)`;
                         }
                     }
                 }
-            },
-            animation: {
-                animateRotate: true,
-                animateScale: true
             }
         }
     });
