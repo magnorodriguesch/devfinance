@@ -30,7 +30,9 @@ body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--t
 .btn-del-small { color: var(--red); cursor: pointer; font-weight: bold; margin-left: 10px; }
 
 .bottom-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
-.chart-container { position: relative; height: 320px; width: 100%; }
+.chart-card { min-height: 400px; }
+.chart-card canvas { max-height: 320px; margin: 0 auto; }
+.chart-card h3 { margin-bottom: 15px; text-align: center; color: #2d3748; }
 
 .results { margin: 15px 0; }
 .res-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
@@ -44,3 +46,14 @@ body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--t
 .btn-del-hist { position: absolute; top: 10px; right: 10px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 5px; cursor: pointer; padding: 3px 7px; font-size: 0.7rem; }
 
 .btn-clear { background: #fee2e2; color: #b91c1c; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+/* Botão de apagar no histórico */
+.btn-delete-hist { position: absolute; top: 10px; right: 10px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 5px; cursor: pointer; padding: 5px 10px; font-size: 0.75rem; font-weight: 600; transition: 0.2s; }
+.btn-delete-hist:hover { background: #fecaca; }
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .bottom-grid { grid-template-columns: 1fr; }
+    .main-grid { grid-template-columns: 1fr; }
+    .main-header { flex-direction: column; gap: 15px; text-align: center; }
+}
