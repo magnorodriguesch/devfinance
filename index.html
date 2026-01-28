@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFinance Pro 6.0 - Histórico</title>
+    <title>DevFinance Pro 7.0 - Final Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
 <body>
 
 <div class="dashboard">
     <header class="main-header">
         <h1>💰 DevFinance <span>Pro</span></h1>
-        <button onclick="limparSistema()" class="btn-clear">Zerar Tudo (Reset)</button>
+        <button onclick="limparSistema()" class="btn-clear">⚠️ Zerar Todo o Sistema</button>
     </header>
 
     <section class="card income-section">
@@ -24,13 +25,13 @@
     </section>
 
     <div class="main-grid">
-        <div class="card">
+        <div class="card card-spending">
             <h3>📅 Contas Fixas</h3>
             <div class="add-form">
-                <input type="text" id="fixa-nome" placeholder="Ex: Aluguel">
+                <input type="text" id="fixo-nome" placeholder="Ex: Aluguel">
                 <div class="input-row">
-                    <input type="number" id="fixa-valor" placeholder="R$">
-                    <input type="number" id="fixa-parcelas" placeholder="Meses">
+                    <input type="number" id="fixo-valor" placeholder="R$">
+                    <input type="number" id="fixo-parcelas" placeholder="Meses">
                 </div>
                 <button onclick="adicionar('fixo')" class="btn-add blue">Adicionar</button>
             </div>
@@ -38,7 +39,7 @@
             <div class="card-footer">Total: <span id="total-fixas">R$ 0,00</span></div>
         </div>
 
-        <div class="card">
+        <div class="card card-spending">
             <h3>🎉 Lazer</h3>
             <div class="add-form">
                 <input type="text" id="lazer-nome" placeholder="Ex: Cinema">
@@ -49,7 +50,7 @@
             <div class="card-footer">Total: <span id="total-lazer">R$ 0,00</span></div>
         </div>
 
-        <div class="card">
+        <div class="card card-spending">
             <h3>🛍️ Compras</h3>
             <div class="add-form">
                 <input type="text" id="compra-nome" placeholder="Ex: Roupas">
@@ -60,12 +61,12 @@
             <div class="card-footer">Total: <span id="total-compras">R$ 0,00</span></div>
         </div>
 
-        <div class="card">
+        <div class="card card-extra">
             <h3>💵 Ganhos Extras</h3>
             <div class="add-form">
                 <input type="text" id="extra-nome" placeholder="Ex: Freelance">
                 <input type="number" id="extra-valor" placeholder="R$">
-                <button onclick="adicionar('extra')" class="btn-add green">Adicionar</button>
+                <button onclick="adicionar('extra')" class="btn-add green">Adicionar Ganho</button>
             </div>
             <ul id="lista-extras" class="scroll-list"></ul>
             <div class="card-footer">Total: <span id="total-extras">R$ 0,00</span></div>
@@ -75,7 +76,9 @@
     <div class="bottom-grid">
         <div class="card chart-card">
             <h3>📊 Resumo Visual</h3>
-            <canvas id="graficoPizza"></canvas>
+            <div class="chart-container">
+                <canvas id="graficoPizza"></canvas>
+            </div>
         </div>
 
         <div class="card summary-card">
@@ -105,7 +108,7 @@
   import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw", 
+    apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw",
     authDomain: "devfinance-4f0a0.firebaseapp.com",
     projectId: "devfinance-4f0a0",
     storageBucket: "devfinance-4f0a0.appspot.com",
@@ -116,7 +119,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   
-  // Exportando funções para o window para o script.js usar
   window.db = db; window.doc = doc; window.setDoc = setDoc; 
   window.getDoc = getDoc; window.deleteDoc = deleteDoc;
   window.collection = collection; window.getDocs = getDocs;
