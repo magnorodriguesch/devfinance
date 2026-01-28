@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFinance Pro 7.0 - Final Edition</title>
+    <title>DevFinance Pro - Versão Final</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -13,7 +13,7 @@
 <div class="dashboard">
     <header class="main-header">
         <h1>💰 DevFinance <span>Pro</span></h1>
-        <button onclick="limparSistema()" class="btn-clear">⚠️ Zerar Todo o Sistema</button>
+        <button onclick="limparSistema()" class="btn-clear">Zerar Tudo</button>
     </header>
 
     <section class="card income-section">
@@ -25,7 +25,7 @@
     </section>
 
     <div class="main-grid">
-        <div class="card card-spending">
+        <div class="card">
             <h3>📅 Contas Fixas</h3>
             <div class="add-form">
                 <input type="text" id="fixo-nome" placeholder="Ex: Aluguel">
@@ -39,7 +39,7 @@
             <div class="card-footer">Total: <span id="total-fixas">R$ 0,00</span></div>
         </div>
 
-        <div class="card card-spending">
+        <div class="card">
             <h3>🎉 Lazer</h3>
             <div class="add-form">
                 <input type="text" id="lazer-nome" placeholder="Ex: Cinema">
@@ -50,7 +50,7 @@
             <div class="card-footer">Total: <span id="total-lazer">R$ 0,00</span></div>
         </div>
 
-        <div class="card card-spending">
+        <div class="card">
             <h3>🛍️ Compras</h3>
             <div class="add-form">
                 <input type="text" id="compra-nome" placeholder="Ex: Roupas">
@@ -61,12 +61,12 @@
             <div class="card-footer">Total: <span id="total-compras">R$ 0,00</span></div>
         </div>
 
-        <div class="card card-extra">
+        <div class="card">
             <h3>💵 Ganhos Extras</h3>
             <div class="add-form">
                 <input type="text" id="extra-nome" placeholder="Ex: Freelance">
                 <input type="number" id="extra-valor" placeholder="R$">
-                <button onclick="adicionar('extra')" class="btn-add green">Adicionar Ganho</button>
+                <button onclick="adicionar('extra')" class="btn-add green">Adicionar</button>
             </div>
             <ul id="lista-extras" class="scroll-list"></ul>
             <div class="card-footer">Total: <span id="total-extras">R$ 0,00</span></div>
