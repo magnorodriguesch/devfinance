@@ -53,8 +53,8 @@ function adicionar(tipo) {
 
     if(tipo === 'fixo') dados.fixas.push(item);
     else if(tipo === 'lazer') dados.lazer.push(item);
-    else if(tipo === 'compra') dados.compras.push(item);
-    else if(tipo === 'extra') dados.extras.push(item);
+    else if(tipo === 'compras') dados.compras.push(item);
+    else if(tipo === 'extras') dados.extras.push(item);
 
     document.getElementById(`${tipo}-nome`).value = "";
     document.getElementById(`${tipo}-valor`).value = "";
@@ -132,8 +132,8 @@ let grafico = null;
 function removerItem(tipo, id) {
     if(tipo === 'fixo') dados.fixas = dados.fixas.filter(i => i.id !== id);
     else if(tipo === 'lazer') dados.lazer = dados.lazer.filter(i => i.id !== id);
-    else if(tipo === 'compra') dados.compras = dados.compras.filter(i => i.id !== id);
-    else if(tipo === 'extra') dados.extras = dados.extras.filter(i => i.id !== id);
+    else if(tipo === 'compras') dados.compras = dados.compras.filter(i => i.id !== id);
+    else if(tipo === 'extras') dados.extras = dados.extras.filter(i => i.id !== id);
     
     atualizarTudo();
     salvarNaNuvem();
@@ -147,8 +147,8 @@ function atualizarTudo() {
     // Renderiza listas
     renderizarLista('lista-fixas', dados.fixas, 'fixo');
     renderizarLista('lista-lazer', dados.lazer, 'lazer');
-    renderizarLista('lista-compras', dados.compras, 'compra');
-    renderizarLista('lista-extras', dados.extras, 'extra');
+    renderizarLista('lista-compras', dados.compras, 'compras');
+    renderizarLista('lista-extras', dados.extras, 'extras');
     
     // Calcula totais
     const totalFixas = dados.fixas.reduce((a, b) => a + b.valor, 0);
