@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFinance Pro 5.0 - Cloud</title>
+    <title>DevFinance Pro 6.0 - Histórico</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
 <body>
 
 <div class="dashboard">
     <header class="main-header">
         <h1>💰 DevFinance <span>Pro</span></h1>
-        <button onclick="limparSistema()" class="btn-clear">Zerar Dados</button>
+        <button onclick="limparSistema()" class="btn-clear">Zerar Tudo (Reset)</button>
     </header>
 
     <section class="card income-section">
@@ -25,7 +24,7 @@
     </section>
 
     <div class="main-grid">
-        <div class="card card-spending">
+        <div class="card">
             <h3>📅 Contas Fixas</h3>
             <div class="add-form">
                 <input type="text" id="fixa-nome" placeholder="Ex: Aluguel">
@@ -39,7 +38,7 @@
             <div class="card-footer">Total: <span id="total-fixas">R$ 0,00</span></div>
         </div>
 
-        <div class="card card-spending">
+        <div class="card">
             <h3>🎉 Lazer</h3>
             <div class="add-form">
                 <input type="text" id="lazer-nome" placeholder="Ex: Cinema">
@@ -50,10 +49,10 @@
             <div class="card-footer">Total: <span id="total-lazer">R$ 0,00</span></div>
         </div>
 
-        <div class="card card-spending">
+        <div class="card">
             <h3>🛍️ Compras</h3>
             <div class="add-form">
-                <input type="text" id="compra-nome" placeholder="Ex: Mouse">
+                <input type="text" id="compra-nome" placeholder="Ex: Roupas">
                 <input type="number" id="compra-valor" placeholder="R$">
                 <button onclick="adicionar('compra')" class="btn-add purple">Adicionar</button>
             </div>
@@ -61,12 +60,12 @@
             <div class="card-footer">Total: <span id="total-compras">R$ 0,00</span></div>
         </div>
 
-        <div class="card card-extra">
+        <div class="card">
             <h3>💵 Ganhos Extras</h3>
             <div class="add-form">
                 <input type="text" id="extra-nome" placeholder="Ex: Freelance">
                 <input type="number" id="extra-valor" placeholder="R$">
-                <button onclick="adicionar('extra')" class="btn-add green">Adicionar Ganho</button>
+                <button onclick="adicionar('extra')" class="btn-add green">Adicionar</button>
             </div>
             <ul id="lista-extras" class="scroll-list"></ul>
             <div class="card-footer">Total: <span id="total-extras">R$ 0,00</span></div>
@@ -76,9 +75,7 @@
     <div class="bottom-grid">
         <div class="card chart-card">
             <h3>📊 Resumo Visual</h3>
-            <div class="chart-wrapper">
-                <canvas id="graficoPizza"></canvas>
-            </div>
+            <canvas id="graficoPizza"></canvas>
         </div>
 
         <div class="card summary-card">
@@ -93,16 +90,20 @@
                 <div class="res-item">Total Disponível: <span id="res-total">R$ 0,00</span></div>
                 <div class="res-item sobra">Sobra Final: <span id="res-sobra">R$ 0,00</span></div>
             </div>
-            <button onclick="fecharMes()" class="btn-finish">🏁 FECHAR MÊS E ABATER PARCELAS</button>
+            <button onclick="fecharMes()" class="btn-finish">🏁 FECHAR MÊS E ARQUIVAR</button>
         </div>
     </div>
+
+    <section class="card history-section">
+        <h3>📂 Histórico de Meses Passados</h3>
+        <div id="lista-historico" class="history-grid"></div>
+    </section>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // Mantenha suas chaves aqui!
   const firebaseConfig = {
     apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw", 
     authDomain: "devfinance-4f0a0.firebaseapp.com",
@@ -114,7 +115,11 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  window.db = db; window.doc = doc; window.setDoc = setDoc; window.getDoc = getDoc;
+  
+  // Exportando funções para o window para o script.js usar
+  window.db = db; window.doc = doc; window.setDoc = setDoc; 
+  window.getDoc = getDoc; window.deleteDoc = deleteDoc;
+  window.collection = collection; window.getDocs = getDocs;
 </script>
 <script src="script.js"></script>
 </body>
