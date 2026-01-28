@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFinance Pro - Versão Final</title>
+    <title>DevFinance Pro 6.0 - Histórico</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
 <body>
 
 <div class="dashboard">
     <header class="main-header">
         <h1>💰 DevFinance <span>Pro</span></h1>
-        <button onclick="limparSistema()" class="btn-clear">Zerar Tudo</button>
+        <button onclick="limparSistema()" class="btn-clear">Zerar Tudo (Reset)</button>
     </header>
 
     <section class="card income-section">
@@ -28,10 +27,10 @@
         <div class="card">
             <h3>📅 Contas Fixas</h3>
             <div class="add-form">
-                <input type="text" id="fixo-nome" placeholder="Ex: Aluguel">
+                <input type="text" id="fixa-nome" placeholder="Ex: Aluguel">
                 <div class="input-row">
-                    <input type="number" id="fixo-valor" placeholder="R$">
-                    <input type="number" id="fixo-parcelas" placeholder="Meses">
+                    <input type="number" id="fixa-valor" placeholder="R$">
+                    <input type="number" id="fixa-parcelas" placeholder="Meses">
                 </div>
                 <button onclick="adicionar('fixo')" class="btn-add blue">Adicionar</button>
             </div>
@@ -76,9 +75,7 @@
     <div class="bottom-grid">
         <div class="card chart-card">
             <h3>📊 Resumo Visual</h3>
-            <div class="chart-container">
-                <canvas id="graficoPizza"></canvas>
-            </div>
+            <canvas id="graficoPizza"></canvas>
         </div>
 
         <div class="card summary-card">
@@ -108,7 +105,7 @@
   import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw",
+    apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw", 
     authDomain: "devfinance-4f0a0.firebaseapp.com",
     projectId: "devfinance-4f0a0",
     storageBucket: "devfinance-4f0a0.appspot.com",
@@ -119,6 +116,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   
+  // Exportando funções para o window para o script.js usar
   window.db = db; window.doc = doc; window.setDoc = setDoc; 
   window.getDoc = getDoc; window.deleteDoc = deleteDoc;
   window.collection = collection; window.getDocs = getDocs;
