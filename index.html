@@ -24,13 +24,13 @@
     </section>
 
     <div class="main-grid">
-        <div class="card">
+<div class="card">
             <h3>📅 Contas Fixas</h3>
             <div class="add-form">
-                <input type="text" id="fixa-nome" placeholder="Ex: Aluguel">
+                <input type="text" id="fixo-nome" placeholder="Ex: Aluguel">
                 <div class="input-row">
-                    <input type="number" id="fixa-valor" placeholder="R$">
-                    <input type="number" id="fixa-parcelas" placeholder="Meses">
+                    <input type="number" id="fixo-valor" placeholder="R$">
+                    <input type="number" id="fixo-parcelas" placeholder="Meses">
                 </div>
                 <button onclick="adicionar('fixo')" class="btn-add blue">Adicionar</button>
             </div>
@@ -49,23 +49,23 @@
             <div class="card-footer">Total: <span id="total-lazer">R$ 0,00</span></div>
         </div>
 
-        <div class="card">
+<div class="card">
             <h3>🛍️ Compras</h3>
             <div class="add-form">
-                <input type="text" id="compra-nome" placeholder="Ex: Roupas">
-                <input type="number" id="compra-valor" placeholder="R$">
-                <button onclick="adicionar('compra')" class="btn-add purple">Adicionar</button>
+                <input type="text" id="compras-nome" placeholder="Ex: Roupas">
+                <input type="number" id="compras-valor" placeholder="R$">
+                <button onclick="adicionar('compras')" class="btn-add purple">Adicionar</button>
             </div>
             <ul id="lista-compras" class="scroll-list"></ul>
             <div class="card-footer">Total: <span id="total-compras">R$ 0,00</span></div>
         </div>
 
-        <div class="card">
+<div class="card">
             <h3>💵 Ganhos Extras</h3>
             <div class="add-form">
-                <input type="text" id="extra-nome" placeholder="Ex: Freelance">
-                <input type="number" id="extra-valor" placeholder="R$">
-                <button onclick="adicionar('extra')" class="btn-add green">Adicionar</button>
+                <input type="text" id="extras-nome" placeholder="Ex: Freelance">
+                <input type="number" id="extras-valor" placeholder="R$">
+                <button onclick="adicionar('extras')" class="btn-add green">Adicionar</button>
             </div>
             <ul id="lista-extras" class="scroll-list"></ul>
             <div class="card-footer">Total: <span id="total-extras">R$ 0,00</span></div>
