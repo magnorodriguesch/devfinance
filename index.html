@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevFinance Pro 5.0 - Cloud</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+</head>
+<body>
+
+<div class="dashboard">
+    <header class="main-header">
+        <h1>💰 DevFinance <span>Pro</span></h1>
+        <button onclick="limparSistema()" class="btn-clear">Zerar Dados</button>
+    </header>
+
+    <section class="card income-section">
+        <label>Qual seu salário/renda este mês?</label>
+        <div class="input-group-main">
+            <span>R$</span>
+            <input type="number" id="salario" placeholder="0,00" oninput="atualizarTudo()">
+        </div>
+    </section>
+
+    <div class="main-grid">
+        <div class="card card-spending">
+            <h3>📅 Contas Fixas</h3>
+            <div class="add-form">
+                <input type="text" id="fixa-nome" placeholder="Ex: Aluguel">
+                <div class="input-row">
+                    <input type="number" id="fixa-valor" placeholder="R$">
+                    <input type="number" id="fixa-parcelas" placeholder="Meses">
+                </div>
+                <button onclick="adicionar('fixo')" class="btn-add blue">Adicionar</button>
+            </div>
+            <ul id="lista-fixas" class="scroll-list"></ul>
+            <div class="card-footer">Total: <span id="total-fixas">R$ 0,00</span></div>
+        </div>
+
+        <div class="card card-spending">
+            <h3>🎉 Lazer</h3>
+            <div class="add-form">
+                <input type="text" id="lazer-nome" placeholder="Ex: Cinema">
+                <input type="number" id="lazer-valor" placeholder="R$">
+                <button onclick="adicionar('lazer')" class="btn-add yellow">Adicionar</button>
+            </div>
+            <ul id="lista-lazer" class="scroll-list"></ul>
+            <div class="card-footer">Total: <span id="total-lazer">R$ 0,00</span></div>
+        </div>
+
+        <div class="card card-spending">
+            <h3>🛍️ Compras</h3>
+            <div class="add-form">
+                <input type="text" id="compra-nome" placeholder="Ex: Mouse">
+                <input type="number" id="compra-valor" placeholder="R$">
+                <button onclick="adicionar('compra')" class="btn-add purple">Adicionar</button>
+            </div>
+            <ul id="lista-compras" class="scroll-list"></ul>
+            <div class="card-footer">Total: <span id="total-compras">R$ 0,00</span></div>
+        </div>
+
+        <div class="card card-extra">
+            <h3>💵 Ganhos Extras</h3>
+            <div class="add-form">
+                <input type="text" id="extra-nome" placeholder="Ex: Freelance">
+                <input type="number" id="extra-valor" placeholder="R$">
+                <button onclick="adicionar('extra')" class="btn-add green">Adicionar Ganho</button>
+            </div>
+            <ul id="lista-extras" class="scroll-list"></ul>
+            <div class="card-footer">Total: <span id="total-extras">R$ 0,00</span></div>
+        </div>
+    </div>
+
+    <div class="bottom-grid">
+        <div class="card chart-card">
+            <h3>📊 Resumo Visual</h3>
+            <div class="chart-wrapper">
+                <canvas id="graficoPizza"></canvas>
+            </div>
+        </div>
+
+        <div class="card summary-card">
+            <h3>🏦 Saldo e Acúmulo</h3>
+            <div class="balance-info">
+                <p>Saldo do mês anterior:</p>
+                <div id="display-anterior" class="value">R$ 0,00</div>
+                <input type="hidden" id="valor-anterior" value="0">
+            </div>
+            <hr>
+            <div class="results">
+                <div class="res-item">Total Disponível: <span id="res-total">R$ 0,00</span></div>
+                <div class="res-item sobra">Sobra Final: <span id="res-sobra">R$ 0,00</span></div>
+            </div>
+            <button onclick="fecharMes()" class="btn-finish">🏁 FECHAR MÊS E ABATER PARCELAS</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // Mantenha suas chaves aqui!
+  const firebaseConfig = {
+    apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw", 
+    authDomain: "devfinance-4f0a0.firebaseapp.com",
+    projectId: "devfinance-4f0a0",
+    storageBucket: "devfinance-4f0a0.appspot.com",
+    messagingSenderId: "305244990522",
+    appId: "1:305244990522:web:254d881fedc414c11a1903"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db; window.doc = doc; window.setDoc = setDoc; window.getDoc = getDoc;
+</script>
+<script src="script.js"></script>
+</body>
+</html>
