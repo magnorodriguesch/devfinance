@@ -118,10 +118,199 @@ async function apagarMes(id) {
 // Tornar apagarMes global
 window.apagarMes = apagarMes;
 
+// Tornar funções globais para os onclick do HTML
+window.adicionar = adicionar;
+window.fecharMes = fecharMes;
+window.limparSistema = limparSistema;
+window.atualizarTudo = atualizarTudo;
+window.removerItem = removerItem;
+
+// Variável global do gráfico
+let grafico = null;
+
+// REMOVER ITEM
+function removerItem(tipo, id) {
+    if(tipo === 'fixo') dados.fixas = dados.fixas.filter(i => i.id !== id);
+    else if(tipo === 'lazer') dados.lazer = dados.lazer.filter(i => i.id !== id);
+    else if(tipo === 'compra') dados.compras = dados.compras.filter(i => i.id !== id);
+    else if(tipo === 'extra') dados.extras = dados.extras.filter(i => i.id !== id);
+    
+    atualizarTudo();
+    salvarNaNuvem();
+}
+
+// ATUALIZAR TUDO (Interface + Gráfico)
+function atualizarTudo() {
+    // Atualiza salário no objeto
+    dados.salario = parseFloat(document.getElementById('salario').value) || 0;
+    
+    // Renderiza listas
+    renderizarLista('lista-fixas', dados.fixas, 'fixo');
+    renderizarLista('lista-lazer', dados.lazer, 'lazer');
+    renderizarLista('lista-compras', dados.compras, 'compra');
+    renderizarLista('lista-extras', dados.extras, 'extra');
+    
+    // Calcula totais
+    const totalFixas = dados.fixas.reduce((a, b) => a + b.valor, 0);
+    const totalLazer = dados.lazer.reduce((a, b) => a + b.valor, 0);
+    const totalCompras = dados.compras.reduce((a, b) => a + b.valor, 0);
+    const totalExtras = dados.extras.reduce((a, b) => a + b.valor, 0);
+    
+    // Exibe totais nas categorias
+    document.getElementById('total-fixas').textContent = f(totalFixas);
+    document.getElementById('total-lazer').textContent = f(totalLazer);
+    document.getElementById('total-compras').textContent = f(totalCompras);
+    document.getElementById('total-extras').textContent = f(totalExtras);
+    
+    // Calcula saldos
+    const anterior = parseFloat(document.getElementById('valor-anterior').value) || 0;
+    const totalEntradas = dados.salario + anterior + totalExtras;
+    const totalGastos = totalFixas + totalLazer + totalCompras;
+    const sobra = totalEntradas - totalGastos;
+    
+    // Exibe saldos
+    document.getElementById('display-anterior').textContent = f(anterior);
+    document.getElementById('res-total').textContent = f(totalEntradas);
+    document.getElementById('res-sobra').textContent = f(sobra);
+    document.getElementById('res-sobra').style.color = sobra >= 0 ? '#38a169' : '#e53e3e';
+    
+    // Atualiza gráfico
+    atualizarGrafico(totalFixas, totalLazer, totalCompras, totalExtras, sobra > 0 ? sobra : 0);
+}
+
+// RENDERIZAR LISTA
+function renderizarLista(elementoId, array, tipo) {
+    const ul = document.getElementById(elementoId);
+    ul.innerHTML = '';
+    
+    array.forEach(item => {
+        const li = document.createElement('li');
+        const parcText = item.parcelas !== undefined ? 
+            (item.parcelas === "Sempre" ? " (Fixo)" : ` (${item.parcelas}x)`) : '';
+        
+        li.innerHTML = `
+            <span>${item.nome}${parcText}</span>
+            <span>
+                ${f(item.valor)}
+                <span class="btn-del-small" onclick="removerItem('${tipo}', ${item.id})">X</span>
+            </span>
+        `;
+        ul.appendChild(li);
+    });
+}
+
+// ATUALIZAR GRÁFICO
+function atualizarGrafico(fixas, lazer, compras, extras, sobra) {
+    const ctx = document.getElementById('graficoPizza').getContext('2d');
+    
+    // Destrói gráfico anterior se existir
+    if(grafico) {
+        grafico.destroy();
+    }
+    
+    const temDados = fixas > 0 || lazer > 0 || compras > 0 || extras > 0 || sobra > 0;
+    
+    if(!temDados) {
+        // Gráfico vazio - mostra mensagem
+        grafico = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sem dados'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+        return;
+    }
+    
+    grafico = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Contas Fixas', 'Lazer', 'Compras', 'Ganhos Extras', 'Sobra'],
+            datasets: [{
+                data: [fixas, lazer, compras, extras, sobra],
+                backgroundColor: [
+                    '#3182ce', // Azul - Fixas
+                    '#d69e2e', // Amarelo - Lazer
+                    '#805ad5', // Roxo - Compras
+                    '#38a169', // Verde - Extras
+                    '#48bb78'  // Verde claro - Sobra
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            family: "'Poppins', sans-serif",
+                            size: 12
+                        },
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: `${label}: ${f(value)}`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: value === 0,
+                                        index: i
+                                    };
+                                }).filter(item => !item.hidden);
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(45, 55, 72, 0.95)',
+                    titleFont: { family: "'Poppins', sans-serif", size: 14, weight: 'bold' },
+                    bodyFont: { family: "'Poppins', sans-serif", size: 13 },
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = context.raw;
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return ` ${f(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true
+            }
+        }
+    });
+}
+
 // INICIALIZAÇÃO
 window.onload = async () => {
     await carregarDaNuvem();
     await carregarHistorico();
+    atualizarTudo();
 };
-
-// ... (Mantenha as funções de atualizarTudo e Grafico que já tínhamos) ...
