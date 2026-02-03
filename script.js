@@ -1,229 +1,218 @@
-let dados = { salario: 0, fixas: [], lazer: [], compras: [], extras: [], anterior: 0 };
+// ==================== DADOS ====================
+let dados = {
+    salario: 0,
+    fixas: [],
+    lazer: [],
+    compras: [],
+    extras: [],
+    anterior: 0,
+    historico: [],
+    lembretes: [],
+    vicios: []
+};
 
-// Função para formatar dinheiro
-const f = (v) => v.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'});
+let periodoAtual = 'mensal';
+let mesCalendario = new Date().getMonth();
+let anoCalendario = new Date().getFullYear();
+let grafico = null;
 
-// SALVAR NA NUVEM
-async function salvarNaNuvem() {
-    const docRef = window.doc(window.db, "usuarios", "perfil_magno");
-    await window.setDoc(docRef, dados);
+// ==================== UTILS ====================
+const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function salvar() {
+    localStorage.setItem('devfinance_data', JSON.stringify(dados));
 }
 
-// CARREGAR DA NUVEM
-async function carregarDaNuvem() {
-    const docRef = window.doc(window.db, "usuarios", "perfil_magno");
-    const snap = await window.getDoc(docRef);
-    if (snap.exists()) {
-        dados = snap.data();
-        document.getElementById('salario').value = dados.salario || "";
-        document.getElementById('valor-anterior').value = dados.anterior || 0;
-        atualizarTudo();
+function carregar() {
+    const saved = localStorage.getItem('devfinance_data');
+    if (saved) {
+        dados = JSON.parse(saved);
     }
 }
 
-// ZERAR TUDO (CORRIGIDO)
-async function limparSistema() {
-    if(!confirm("⚠️ ISSO VAI APAGAR TUDO (incluindo histórico)! Tem certeza?")) return;
+// ==================== NAVEGACAO ====================
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item, .mobile-nav-item');
     
-    // Limpa Objeto
-    dados = { salario: 0, fixas: [], lazer: [], compras: [], extras: [], anterior: 0 };
-    
-    // Limpa Firestore principal
-    await window.deleteDoc(window.doc(window.db, "usuarios", "perfil_magno"));
-    
-    // Limpa campos da tela
-    document.getElementById('salario').value = "";
-    document.getElementById('valor-anterior').value = 0;
-    
-    atualizarTudo();
-    alert("Sistema resetado com sucesso!");
-    location.reload(); // Recarrega para limpar histórico da tela
-}
-
-// ADICIONAR ITEM
-function adicionar(tipo) {
-    const nome = document.getElementById(`${tipo}-nome`).value;
-    const valor = parseFloat(document.getElementById(`${tipo}-valor`).value);
-    const parc = document.getElementById(`${tipo}-parcelas`)?.value;
-
-    if(!nome || !valor) return alert("Preencha nome e valor!");
-
-    const item = { nome, valor, id: Date.now() };
-    if(tipo === 'fixo') item.parcelas = parc ? parseInt(parc) : "Sempre";
-
-    if(tipo === 'fixo') dados.fixas.push(item);
-    else if(tipo === 'lazer') dados.lazer.push(item);
-    else if(tipo === 'compras') dados.compras.push(item);
-    else if(tipo === 'extras') dados.extras.push(item);
-
-    document.getElementById(`${tipo}-nome`).value = "";
-    document.getElementById(`${tipo}-valor`).value = "";
-    
-    atualizarTudo();
-    salvarNaNuvem();
-}
-
-// FECHAR MÊS E SALVAR HISTÓRICO
-async function fecharMes() {
-    const mesAtual = new Intl.DateTimeFormat('pt-BR', {month: 'long'}).format(new Date());
-    const totalGasto = (dados.fixas.reduce((a,b)=>a+b.valor,0)) + (dados.lazer.reduce((a,b)=>a+b.valor,0)) + (dados.compras.reduce((a,b)=>a+b.valor,0));
-    const sobra = (parseFloat(document.getElementById('salario').value) || 0) + (parseFloat(dados.anterior) || 0) + (dados.extras.reduce((a,b)=>a+b.valor,0)) - totalGasto;
-
-    if(!confirm(`Deseja encerrar ${mesAtual}?`)) return;
-
-    // Salva no Histórico
-    const histRef = window.doc(window.db, "usuarios", "perfil_magno", "historico", `${mesAtual}_${Date.now()}`);
-    await window.setDoc(histRef, { mes: mesAtual, sobra, totalGasto, data: new Date() });
-
-    // Lógica de parcelas e reset
-    dados.anterior = sobra > 0 ? sobra : 0;
-    dados.lazer = []; dados.compras = []; dados.extras = [];
-    dados.fixas = dados.fixas.map(it => {
-        if(typeof it.parcelas === 'number') it.parcelas -= 1;
-        return it;
-    }).filter(it => it.parcelas === "Sempre" || it.parcelas > 0);
-
-    await salvarNaNuvem();
-    alert("Mês arquivado!");
-    location.reload();
-}
-
-// CARREGAR E APAGAR HISTÓRICO
-async function carregarHistorico() {
-    const colRef = window.collection(window.db, "usuarios", "perfil_magno", "historico");
-    const snap = await window.getDocs(colRef);
-    const container = document.getElementById('lista-historico');
-    container.innerHTML = "";
-
-    snap.forEach((d) => {
-        const h = d.data();
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-            <button class="btn-delete-hist" onclick="apagarMes('${d.id}')">Apagar</button>
-            <h4>📅 ${h.mes}</h4>
-            <p>Gastos: ${f(h.totalGasto)}</p>
-            <p style="color: green">Sobra: ${f(h.sobra)}</p>
-        `;
-        container.appendChild(div);
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const tab = item.dataset.tab;
+            
+            // Update active state
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll(`[data-tab="${tab}"]`).forEach(n => n.classList.add('active'));
+            
+            // Show tab content
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        });
     });
 }
 
-async function apagarMes(id) {
-    if(!confirm("Apagar este mês do histórico?")) return;
-    await window.deleteDoc(window.doc(window.db, "usuarios", "perfil_magno", "historico", id));
-    carregarHistorico();
+// ==================== TOGGLE PERIODO ====================
+function initPeriodToggle() {
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            toggleBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            periodoAtual = btn.dataset.period;
+            atualizarCards();
+        });
+    });
 }
 
-// Tornar apagarMes global
-window.apagarMes = apagarMes;
-
-// Tornar funções globais para os onclick do HTML
-window.adicionar = adicionar;
-window.fecharMes = fecharMes;
-window.limparSistema = limparSistema;
-window.atualizarTudo = atualizarTudo;
-window.removerItem = removerItem;
-
-// Variável global do gráfico
-let grafico = null;
-
-// REMOVER ITEM
-function removerItem(tipo, id) {
-    if(tipo === 'fixo') dados.fixas = dados.fixas.filter(i => i.id !== id);
-    else if(tipo === 'lazer') dados.lazer = dados.lazer.filter(i => i.id !== id);
-    else if(tipo === 'compras') dados.compras = dados.compras.filter(i => i.id !== id);
-    else if(tipo === 'extras') dados.extras = dados.extras.filter(i => i.id !== id);
+// ==================== FINANCAS ====================
+function adicionar(tipo) {
+    const nome = document.getElementById(`${tipo}-nome`).value;
+    const valor = parseFloat(document.getElementById(`${tipo}-valor`).value);
+    const parcelas = document.getElementById(`${tipo}-parcelas`)?.value;
     
+    if (!nome || !valor) {
+        alert('Preencha nome e valor!');
+        return;
+    }
+    
+    const item = {
+        id: Date.now(),
+        nome,
+        valor,
+        data: new Date().toISOString()
+    };
+    
+    if (tipo === 'fixo') {
+        item.parcelas = parcelas ? parseInt(parcelas) : 'Sempre';
+        dados.fixas.push(item);
+    } else if (tipo === 'lazer') {
+        dados.lazer.push(item);
+    } else if (tipo === 'compras') {
+        dados.compras.push(item);
+    } else if (tipo === 'extras') {
+        dados.extras.push(item);
+    }
+    
+    // Clear inputs
+    document.getElementById(`${tipo}-nome`).value = '';
+    document.getElementById(`${tipo}-valor`).value = '';
+    if (parcelas !== undefined) {
+        document.getElementById(`${tipo}-parcelas`).value = '';
+    }
+    
+    salvar();
     atualizarTudo();
-    salvarNaNuvem();
 }
 
-// ATUALIZAR TUDO (Interface + Gráfico)
-function atualizarTudo() {
-    // Atualiza salário no objeto
-    dados.salario = parseFloat(document.getElementById('salario').value) || 0;
+function removerItem(tipo, id) {
+    if (tipo === 'fixo') dados.fixas = dados.fixas.filter(i => i.id !== id);
+    else if (tipo === 'lazer') dados.lazer = dados.lazer.filter(i => i.id !== id);
+    else if (tipo === 'compras') dados.compras = dados.compras.filter(i => i.id !== id);
+    else if (tipo === 'extras') dados.extras = dados.extras.filter(i => i.id !== id);
     
-    // Renderiza listas
-    renderizarLista('lista-fixas', dados.fixas, 'fixo');
-    renderizarLista('lista-lazer', dados.lazer, 'lazer');
-    renderizarLista('lista-compras', dados.compras, 'compras');
-    renderizarLista('lista-extras', dados.extras, 'extras');
-    
-    // Calcula totais
-    const totalFixas = dados.fixas.reduce((a, b) => a + b.valor, 0);
-    const totalLazer = dados.lazer.reduce((a, b) => a + b.valor, 0);
-    const totalCompras = dados.compras.reduce((a, b) => a + b.valor, 0);
-    const totalExtras = dados.extras.reduce((a, b) => a + b.valor, 0);
-    
-    // Exibe totais nas categorias
-    document.getElementById('total-fixas').textContent = f(totalFixas);
-    document.getElementById('total-lazer').textContent = f(totalLazer);
-    document.getElementById('total-compras').textContent = f(totalCompras);
-    document.getElementById('total-extras').textContent = f(totalExtras);
-    
-    // Calcula saldos
-    const anterior = parseFloat(document.getElementById('valor-anterior').value) || 0;
-    const totalEntradas = dados.salario + anterior + totalExtras;
-    const totalGastos = totalFixas + totalLazer + totalCompras;
-    const sobra = totalEntradas - totalGastos;
-    
-    // Exibe saldos
-    document.getElementById('display-anterior').textContent = f(anterior);
-    document.getElementById('res-total').textContent = f(totalEntradas);
-    document.getElementById('res-sobra').textContent = f(sobra);
-    document.getElementById('res-sobra').style.color = sobra >= 0 ? '#38a169' : '#e53e3e';
-    
-    // Atualiza gráfico
-    atualizarGrafico(totalFixas, totalLazer, totalCompras, totalExtras, sobra > 0 ? sobra : 0);
+    salvar();
+    atualizarTudo();
 }
 
-// RENDERIZAR LISTA
 function renderizarLista(elementoId, array, tipo) {
     const ul = document.getElementById(elementoId);
     ul.innerHTML = '';
     
     array.forEach(item => {
         const li = document.createElement('li');
-        const parcText = item.parcelas !== undefined ? 
-            (item.parcelas === "Sempre" ? " (Fixo)" : ` (${item.parcelas}x)`) : '';
+        const parcText = item.parcelas !== undefined
+            ? (item.parcelas === 'Sempre' ? ' (Fixo)' : ` (${item.parcelas}x)`)
+            : '';
         
         li.innerHTML = `
             <span>${item.nome}${parcText}</span>
             <span>
                 ${f(item.valor)}
-                <span class="btn-del-small" onclick="removerItem('${tipo}', ${item.id})">X</span>
+                <button class="btn-del" onclick="removerItem('${tipo}', ${item.id})">X</button>
             </span>
         `;
         ul.appendChild(li);
     });
 }
 
-// ATUALIZAR GRÁFICO
+function calcularTotais() {
+    const totalFixas = dados.fixas.reduce((a, b) => a + b.valor, 0);
+    const totalLazer = dados.lazer.reduce((a, b) => a + b.valor, 0);
+    const totalCompras = dados.compras.reduce((a, b) => a + b.valor, 0);
+    const totalExtras = dados.extras.reduce((a, b) => a + b.valor, 0);
+    
+    return { totalFixas, totalLazer, totalCompras, totalExtras };
+}
+
+function atualizarCards() {
+    const { totalFixas, totalLazer, totalCompras, totalExtras } = calcularTotais();
+    const salario = parseFloat(document.getElementById('salario').value) || 0;
+    
+    let divisor = 1;
+    if (periodoAtual === 'quinzenal') divisor = 2;
+    if (periodoAtual === 'semanal') divisor = 4;
+    
+    const entradas = (salario + dados.anterior + totalExtras) / divisor;
+    const saidas = (totalFixas + totalLazer + totalCompras) / divisor;
+    const total = entradas - saidas;
+    
+    document.getElementById('card-total').textContent = f(total);
+    document.getElementById('card-entradas').textContent = f(entradas);
+    document.getElementById('card-saidas').textContent = f(saidas);
+    
+    document.getElementById('card-total').style.color = total >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+function atualizarTudo() {
+    dados.salario = parseFloat(document.getElementById('salario').value) || 0;
+    
+    renderizarLista('lista-fixas', dados.fixas, 'fixo');
+    renderizarLista('lista-lazer', dados.lazer, 'lazer');
+    renderizarLista('lista-compras', dados.compras, 'compras');
+    renderizarLista('lista-extras', dados.extras, 'extras');
+    
+    const { totalFixas, totalLazer, totalCompras, totalExtras } = calcularTotais();
+    
+    document.getElementById('total-fixas').textContent = f(totalFixas);
+    document.getElementById('total-lazer').textContent = f(totalLazer);
+    document.getElementById('total-compras').textContent = f(totalCompras);
+    document.getElementById('total-extras').textContent = f(totalExtras);
+    
+    const totalEntradas = dados.salario + dados.anterior + totalExtras;
+    const totalGastos = totalFixas + totalLazer + totalCompras;
+    const sobra = totalEntradas - totalGastos;
+    
+    document.getElementById('display-anterior').textContent = f(dados.anterior);
+    document.getElementById('res-total').textContent = f(totalEntradas);
+    document.getElementById('res-sobra').textContent = f(sobra);
+    document.getElementById('res-sobra').style.color = sobra >= 0 ? 'var(--green)' : 'var(--red)';
+    
+    atualizarCards();
+    atualizarGrafico(totalFixas, totalLazer, totalCompras, totalExtras, sobra > 0 ? sobra : 0);
+    renderizarHistorico();
+}
+
 function atualizarGrafico(fixas, lazer, compras, extras, sobra) {
     const canvas = document.getElementById('graficoPizza');
     const ctx = canvas.getContext('2d');
     
-    // Destrói gráfico anterior se existir
-    if(grafico) {
+    if (grafico) {
         grafico.destroy();
         grafico = null;
     }
     
-    // Filtra apenas valores maiores que zero
     const labels = [];
     const values = [];
     const colors = [];
     
-    if(fixas > 0) { labels.push('Contas Fixas'); values.push(fixas); colors.push('#3182ce'); }
-    if(lazer > 0) { labels.push('Lazer'); values.push(lazer); colors.push('#d69e2e'); }
-    if(compras > 0) { labels.push('Compras'); values.push(compras); colors.push('#805ad5'); }
-    if(extras > 0) { labels.push('Ganhos Extras'); values.push(extras); colors.push('#38a169'); }
-    if(sobra > 0) { labels.push('Sobra'); values.push(sobra); colors.push('#48bb78'); }
+    if (fixas > 0) { labels.push('Contas Fixas'); values.push(fixas); colors.push('#3b82f6'); }
+    if (lazer > 0) { labels.push('Lazer'); values.push(lazer); colors.push('#f59e0b'); }
+    if (compras > 0) { labels.push('Compras'); values.push(compras); colors.push('#8b5cf6'); }
+    if (extras > 0) { labels.push('Ganhos Extras'); values.push(extras); colors.push('#10b981'); }
+    if (sobra > 0) { labels.push('Sobra'); values.push(sobra); colors.push('#22c55e'); }
     
-    // Se não tem dados, mostra gráfico vazio
-    if(values.length === 0) {
-        labels.push('Adicione dados');
+    if (values.length === 0) {
+        labels.push('Sem dados');
         values.push(1);
         colors.push('#e2e8f0');
     }
@@ -235,32 +224,21 @@ function atualizarGrafico(fixas, lazer, compras, extras, sobra) {
             datasets: [{
                 data: values,
                 backgroundColor: colors,
-                borderColor: '#ffffff',
-                borderWidth: 2
+                borderColor: 'transparent',
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
-            cutout: '55%',
+            maintainAspectRatio: false,
+            cutout: '60%',
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 12,
+                        padding: 16,
                         usePointStyle: true,
-                        pointStyle: 'circle',
-                        font: { size: 11 }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const value = context.raw;
-                            const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                            return ` ${f(value)} (${pct}%)`;
-                        }
+                        font: { size: 12 }
                     }
                 }
             }
@@ -268,9 +246,389 @@ function atualizarGrafico(fixas, lazer, compras, extras, sobra) {
     });
 }
 
-// INICIALIZAÇÃO
-window.onload = async () => {
-    await carregarDaNuvem();
-    await carregarHistorico();
+function fecharMes() {
+    const mesAtual = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(new Date());
+    const { totalFixas, totalLazer, totalCompras, totalExtras } = calcularTotais();
+    const totalGasto = totalFixas + totalLazer + totalCompras;
+    const sobra = dados.salario + dados.anterior + totalExtras - totalGasto;
+    
+    if (!confirm(`Deseja encerrar ${mesAtual}?`)) return;
+    
+    dados.historico.push({
+        id: Date.now(),
+        mes: mesAtual,
+        ano: new Date().getFullYear(),
+        sobra,
+        totalGasto,
+        data: new Date().toISOString()
+    });
+    
+    dados.anterior = sobra > 0 ? sobra : 0;
+    dados.lazer = [];
+    dados.compras = [];
+    dados.extras = [];
+    dados.fixas = dados.fixas.map(it => {
+        if (typeof it.parcelas === 'number') it.parcelas -= 1;
+        return it;
+    }).filter(it => it.parcelas === 'Sempre' || it.parcelas > 0);
+    
+    salvar();
+    alert('Mes arquivado!');
     atualizarTudo();
+}
+
+function renderizarHistorico() {
+    const container = document.getElementById('lista-historico');
+    container.innerHTML = '';
+    
+    dados.historico.forEach(h => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <button class="btn-del-hist" onclick="apagarMes(${h.id})">X</button>
+            <h4>${h.mes} ${h.ano || ''}</h4>
+            <p>Gastos: ${f(h.totalGasto)}</p>
+            <p class="sobra">Sobra: ${f(h.sobra)}</p>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function apagarMes(id) {
+    if (!confirm('Apagar este mes do historico?')) return;
+    dados.historico = dados.historico.filter(h => h.id !== id);
+    salvar();
+    renderizarHistorico();
+}
+
+// ==================== CALENDARIO ====================
+function renderizarCalendario() {
+    const container = document.getElementById('calendario-dias');
+    const mesAnoEl = document.getElementById('mes-ano');
+    
+    const meses = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    mesAnoEl.textContent = `${meses[mesCalendario]} ${anoCalendario}`;
+    
+    const primeiroDia = new Date(anoCalendario, mesCalendario, 1).getDay();
+    const diasNoMes = new Date(anoCalendario, mesCalendario + 1, 0).getDate();
+    const hoje = new Date();
+    
+    container.innerHTML = '';
+    
+    // Empty days
+    for (let i = 0; i < primeiroDia; i++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day empty';
+        container.appendChild(div);
+    }
+    
+    // Days
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day';
+        
+        if (dia === hoje.getDate() && mesCalendario === hoje.getMonth() && anoCalendario === hoje.getFullYear()) {
+            div.classList.add('today');
+        }
+        
+        const totalDia = calcularTotalDia(dia, mesCalendario, anoCalendario);
+        
+        div.innerHTML = `
+            <span>${dia}</span>
+            ${totalDia > 0 ? `<span class="day-total">${f(totalDia)}</span>` : ''}
+        `;
+        
+        div.onclick = () => mostrarDetalhesDia(dia, mesCalendario, anoCalendario);
+        container.appendChild(div);
+    }
+}
+
+function calcularTotalDia(dia, mes, ano) {
+    const dataStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    let total = 0;
+    
+    [...dados.fixas, ...dados.lazer, ...dados.compras].forEach(item => {
+        if (item.data && item.data.startsWith(dataStr)) {
+            total += item.valor;
+        }
+    });
+    
+    return total;
+}
+
+function mostrarDetalhesDia(dia, mes, ano) {
+    const container = document.getElementById('dia-detalhes');
+    const titulo = document.getElementById('dia-selecionado-titulo');
+    const lista = document.getElementById('dia-transacoes');
+    
+    const dataStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    
+    const transacoes = [...dados.fixas, ...dados.lazer, ...dados.compras, ...dados.extras]
+        .filter(item => item.data && item.data.startsWith(dataStr));
+    
+    titulo.textContent = `${dia}/${mes + 1}/${ano}`;
+    lista.innerHTML = '';
+    
+    if (transacoes.length === 0) {
+        lista.innerHTML = '<li>Nenhuma transacao neste dia</li>';
+    } else {
+        transacoes.forEach(t => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${t.nome}</span><span>${f(t.valor)}</span>`;
+            lista.appendChild(li);
+        });
+    }
+    
+    container.style.display = 'block';
+}
+
+function mudarMes(dir) {
+    mesCalendario += dir;
+    if (mesCalendario > 11) {
+        mesCalendario = 0;
+        anoCalendario++;
+    } else if (mesCalendario < 0) {
+        mesCalendario = 11;
+        anoCalendario--;
+    }
+    renderizarCalendario();
+}
+
+// ==================== LEMBRETES ====================
+function adicionarLembrete() {
+    const titulo = document.getElementById('lembrete-titulo').value;
+    const data = document.getElementById('lembrete-data').value;
+    const hora = document.getElementById('lembrete-hora').value;
+    const local = document.getElementById('lembrete-local').value;
+    
+    if (!titulo || !data) {
+        alert('Preencha titulo e data!');
+        return;
+    }
+    
+    dados.lembretes.push({
+        id: Date.now(),
+        titulo,
+        data,
+        hora: hora || '00:00',
+        local: local || ''
+    });
+    
+    document.getElementById('lembrete-titulo').value = '';
+    document.getElementById('lembrete-data').value = '';
+    document.getElementById('lembrete-hora').value = '';
+    document.getElementById('lembrete-local').value = '';
+    
+    salvar();
+    renderizarLembretes();
+}
+
+function removerLembrete(id) {
+    dados.lembretes = dados.lembretes.filter(l => l.id !== id);
+    salvar();
+    renderizarLembretes();
+}
+
+function renderizarLembretes() {
+    const lista = document.getElementById('lista-lembretes');
+    lista.innerHTML = '';
+    
+    const lembretes = dados.lembretes.sort((a, b) => new Date(a.data) - new Date(b.data));
+    
+    lembretes.forEach(l => {
+        const li = document.createElement('li');
+        li.className = 'reminder-item';
+        
+        const dataFormatada = new Date(l.data + 'T00:00:00').toLocaleDateString('pt-BR');
+        
+        li.innerHTML = `
+            <div class="reminder-info">
+                <h4>${l.titulo}</h4>
+                <p>${dataFormatada} as ${l.hora}${l.local ? ` - ${l.local}` : ''}</p>
+            </div>
+            <button class="btn-del" onclick="removerLembrete(${l.id})">X</button>
+        `;
+        lista.appendChild(li);
+    });
+}
+
+// ==================== VICIOS ====================
+function adicionarVicio() {
+    const nome = document.getElementById('vicio-nome').value;
+    
+    if (!nome) {
+        alert('Digite o nome do vicio!');
+        return;
+    }
+    
+    dados.vicios.push({
+        id: Date.now(),
+        nome,
+        inicio: new Date().toISOString()
+    });
+    
+    document.getElementById('vicio-nome').value = '';
+    
+    salvar();
+    renderizarVicios();
+}
+
+function resetarVicio(id) {
+    const vicio = dados.vicios.find(v => v.id === id);
+    if (vicio) {
+        vicio.inicio = new Date().toISOString();
+        salvar();
+        renderizarVicios();
+    }
+}
+
+function removerVicio(id) {
+    dados.vicios = dados.vicios.filter(v => v.id !== id);
+    salvar();
+    renderizarVicios();
+}
+
+function renderizarVicios() {
+    const container = document.getElementById('lista-vicios');
+    container.innerHTML = '';
+    
+    dados.vicios.forEach(v => {
+        const div = document.createElement('div');
+        div.className = 'vice-card card';
+        div.innerHTML = `
+            <h3>${v.nome}</h3>
+            <div class="vice-timer" id="timer-${v.id}"></div>
+            <div class="vice-actions">
+                <button class="btn-reset" onclick="resetarVicio(${v.id})">Resetar</button>
+                <button class="btn-remove" onclick="removerVicio(${v.id})">Remover</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    
+    atualizarTimers();
+}
+
+function atualizarTimers() {
+    dados.vicios.forEach(v => {
+        const timerEl = document.getElementById(`timer-${v.id}`);
+        if (!timerEl) return;
+        
+        const inicio = new Date(v.inicio);
+        const agora = new Date();
+        const diff = agora - inicio;
+        
+        const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const segundos = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        timerEl.innerHTML = `
+            <div class="timer-block">
+                <span class="number">${dias}</span>
+                <span class="label">dias</span>
+            </div>
+            <div class="timer-block">
+                <span class="number">${horas}</span>
+                <span class="label">horas</span>
+            </div>
+            <div class="timer-block">
+                <span class="number">${minutos}</span>
+                <span class="label">min</span>
+            </div>
+            <div class="timer-block">
+                <span class="number">${segundos}</span>
+                <span class="label">seg</span>
+            </div>
+        `;
+    });
+}
+
+// ==================== TEMA ====================
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('devfinance_theme', theme);
+    
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+}
+
+function loadTheme() {
+    const saved = localStorage.getItem('devfinance_theme') || 'light';
+    setTheme(saved);
+}
+
+// ==================== LIMPAR TUDO ====================
+function limparTudo() {
+    if (!confirm('ATENCAO: Isso ira apagar TODOS os seus dados permanentemente. Continuar?')) return;
+    
+    localStorage.removeItem('devfinance_data');
+    localStorage.removeItem('devfinance_theme');
+    
+    dados = {
+        salario: 0,
+        fixas: [],
+        lazer: [],
+        compras: [],
+        extras: [],
+        anterior: 0,
+        historico: [],
+        lembretes: [],
+        vicios: []
+    };
+    
+    document.getElementById('salario').value = '';
+    
+    atualizarTudo();
+    renderizarCalendario();
+    renderizarLembretes();
+    renderizarVicios();
+    setTheme('light');
+    
+    alert('Todos os dados foram apagados!');
+}
+
+// ==================== INIT ====================
+window.onload = function() {
+    carregar();
+    loadTheme();
+    initNavigation();
+    initPeriodToggle();
+    
+    // Load salary
+    if (dados.salario) {
+        document.getElementById('salario').value = dados.salario;
+    }
+    
+    // Salary input listener
+    document.getElementById('salario').addEventListener('input', () => {
+        dados.salario = parseFloat(document.getElementById('salario').value) || 0;
+        salvar();
+        atualizarTudo();
+    });
+    
+    atualizarTudo();
+    renderizarCalendario();
+    renderizarLembretes();
+    renderizarVicios();
+    
+    // Update timers every second
+    setInterval(atualizarTimers, 1000);
 };
+
+// Global functions for onclick
+window.adicionar = adicionar;
+window.removerItem = removerItem;
+window.fecharMes = fecharMes;
+window.apagarMes = apagarMes;
+window.mudarMes = mudarMes;
+window.adicionarLembrete = adicionarLembrete;
+window.removerLembrete = removerLembrete;
+window.adicionarVicio = adicionarVicio;
+window.resetarVicio = resetarVicio;
+window.removerVicio = removerVicio;
+window.setTheme = setTheme;
+window.limparTudo = limparTudo;
