@@ -3,126 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevFinance Pro 6.0 - Histórico</title>
+    <title>DevFinance Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-<div class="dashboard">
-    <header class="main-header">
-        <h1>💰 DevFinance <span>Pro</span></h1>
-        <button onclick="limparSistema()" class="btn-clear">Zerar Tudo (Reset)</button>
-    </header>
-
-    <section class="card income-section">
-        <label>Qual seu salário/renda este mês?</label>
-        <div class="input-group-main">
-            <span>R$</span>
-            <input type="number" id="salario" placeholder="0,00" oninput="atualizarTudo()">
+    <!-- Sidebar Desktop -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>DevFinance</h1>
         </div>
-    </section>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-tab="inicio">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Inicio</span>
+            </button>
+            <button class="nav-item" data-tab="calendario">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span>Calendario</span>
+            </button>
+            <button class="nav-item" data-tab="lembretes">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                <span>Lembretes</span>
+            </button>
+            <button class="nav-item" data-tab="vicios">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Vicios</span>
+            </button>
+            <button class="nav-item" data-tab="ajustes">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Ajustes</span>
+            </button>
+        </nav>
+    </aside>
 
-    <div class="main-grid">
-<div class="card">
-            <h3>📅 Contas Fixas</h3>
-            <div class="add-form">
-                <input type="text" id="fixo-nome" placeholder="Ex: Aluguel">
-                <div class="input-row">
-                    <input type="number" id="fixo-valor" placeholder="R$">
-                    <input type="number" id="fixo-parcelas" placeholder="Meses">
+    <!-- Mobile Bottom Nav -->
+    <nav class="mobile-nav">
+        <button class="mobile-nav-item active" data-tab="inicio">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Inicio</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="calendario">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <span>Calendario</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="lembretes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span>Lembretes</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="vicios">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Vicios</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="ajustes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Ajustes</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- TAB: INICIO -->
+        <section id="tab-inicio" class="tab-content active">
+            <header class="page-header">
+                <h2>Financas</h2>
+                <div class="toggle-period">
+                    <button class="toggle-btn active" data-period="mensal">Mensal</button>
+                    <button class="toggle-btn" data-period="quinzenal">Quinzenal</button>
+                    <button class="toggle-btn" data-period="semanal">Semanal</button>
                 </div>
-                <button onclick="adicionar('fixo')" class="btn-add blue">Adicionar</button>
+            </header>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card total">
+                    <span class="label">Total</span>
+                    <span class="value" id="card-total">R$ 0,00</span>
+                </div>
+                <div class="summary-card income">
+                    <span class="label">Entradas</span>
+                    <span class="value" id="card-entradas">R$ 0,00</span>
+                </div>
+                <div class="summary-card expense">
+                    <span class="label">Saidas</span>
+                    <span class="value" id="card-saidas">R$ 0,00</span>
+                </div>
             </div>
-            <ul id="lista-fixas" class="scroll-list"></ul>
-            <div class="card-footer">Total: <span id="total-fixas">R$ 0,00</span></div>
-        </div>
 
-        <div class="card">
-            <h3>🎉 Lazer</h3>
-            <div class="add-form">
-                <input type="text" id="lazer-nome" placeholder="Ex: Cinema">
-                <input type="number" id="lazer-valor" placeholder="R$">
-                <button onclick="adicionar('lazer')" class="btn-add yellow">Adicionar</button>
+            <!-- Salario Input -->
+            <div class="card salary-card">
+                <label>Salario/Renda do mes</label>
+                <div class="input-with-icon">
+                    <span>R$</span>
+                    <input type="number" id="salario" placeholder="0,00">
+                </div>
             </div>
-            <ul id="lista-lazer" class="scroll-list"></ul>
-            <div class="card-footer">Total: <span id="total-lazer">R$ 0,00</span></div>
-        </div>
 
-<div class="card">
-            <h3>🛍️ Compras</h3>
-            <div class="add-form">
-                <input type="text" id="compras-nome" placeholder="Ex: Roupas">
-                <input type="number" id="compras-valor" placeholder="R$">
-                <button onclick="adicionar('compras')" class="btn-add purple">Adicionar</button>
+            <!-- Category Cards -->
+            <div class="categories-grid">
+                <div class="card category-card">
+                    <h3 class="category-title blue">Contas Fixas</h3>
+                    <div class="category-form">
+                        <input type="text" id="fixo-nome" placeholder="Nome">
+                        <div class="form-row">
+                            <input type="number" id="fixo-valor" placeholder="Valor">
+                            <input type="number" id="fixo-parcelas" placeholder="Meses">
+                        </div>
+                        <button onclick="adicionar('fixo')" class="btn-add blue">Adicionar</button>
+                    </div>
+                    <ul id="lista-fixas" class="items-list"></ul>
+                    <div class="category-total">Total: <span id="total-fixas">R$ 0,00</span></div>
+                </div>
+
+                <div class="card category-card">
+                    <h3 class="category-title yellow">Lazer</h3>
+                    <div class="category-form">
+                        <input type="text" id="lazer-nome" placeholder="Nome">
+                        <input type="number" id="lazer-valor" placeholder="Valor">
+                        <button onclick="adicionar('lazer')" class="btn-add yellow">Adicionar</button>
+                    </div>
+                    <ul id="lista-lazer" class="items-list"></ul>
+                    <div class="category-total">Total: <span id="total-lazer">R$ 0,00</span></div>
+                </div>
+
+                <div class="card category-card">
+                    <h3 class="category-title purple">Compras</h3>
+                    <div class="category-form">
+                        <input type="text" id="compras-nome" placeholder="Nome">
+                        <input type="number" id="compras-valor" placeholder="Valor">
+                        <button onclick="adicionar('compras')" class="btn-add purple">Adicionar</button>
+                    </div>
+                    <ul id="lista-compras" class="items-list"></ul>
+                    <div class="category-total">Total: <span id="total-compras">R$ 0,00</span></div>
+                </div>
+
+                <div class="card category-card">
+                    <h3 class="category-title green">Ganhos Extras</h3>
+                    <div class="category-form">
+                        <input type="text" id="extras-nome" placeholder="Nome">
+                        <input type="number" id="extras-valor" placeholder="Valor">
+                        <button onclick="adicionar('extras')" class="btn-add green">Adicionar</button>
+                    </div>
+                    <ul id="lista-extras" class="items-list"></ul>
+                    <div class="category-total">Total: <span id="total-extras">R$ 0,00</span></div>
+                </div>
             </div>
-            <ul id="lista-compras" class="scroll-list"></ul>
-            <div class="card-footer">Total: <span id="total-compras">R$ 0,00</span></div>
-        </div>
 
-<div class="card">
-            <h3>💵 Ganhos Extras</h3>
-            <div class="add-form">
-                <input type="text" id="extras-nome" placeholder="Ex: Freelance">
-                <input type="number" id="extras-valor" placeholder="R$">
-                <button onclick="adicionar('extras')" class="btn-add green">Adicionar</button>
+            <!-- Chart & Summary -->
+            <div class="bottom-section">
+                <div class="card chart-card">
+                    <h3>Resumo Visual</h3>
+                    <div class="chart-container">
+                        <canvas id="graficoPizza"></canvas>
+                    </div>
+                </div>
+                <div class="card balance-card">
+                    <h3>Saldo e Acumulo</h3>
+                    <div class="balance-item">
+                        <span>Saldo anterior:</span>
+                        <span id="display-anterior">R$ 0,00</span>
+                    </div>
+                    <div class="balance-item">
+                        <span>Total disponivel:</span>
+                        <span id="res-total">R$ 0,00</span>
+                    </div>
+                    <div class="balance-item highlight">
+                        <span>Sobra final:</span>
+                        <span id="res-sobra">R$ 0,00</span>
+                    </div>
+                    <button onclick="fecharMes()" class="btn-finish">Fechar Mes</button>
+                </div>
             </div>
-            <ul id="lista-extras" class="scroll-list"></ul>
-            <div class="card-footer">Total: <span id="total-extras">R$ 0,00</span></div>
-        </div>
-    </div>
 
-    <div class="bottom-grid">
-<div class="card chart-card">
-            <h3>📊 Resumo Visual</h3>
-            <div class="chart-wrapper">
-                <canvas id="graficoPizza"></canvas>
+            <!-- History -->
+            <div class="card history-card">
+                <h3>Historico</h3>
+                <div id="lista-historico" class="history-list"></div>
             </div>
-        </div>
+        </section>
 
-        <div class="card summary-card">
-            <h3>🏦 Saldo e Acúmulo</h3>
-            <div class="balance-info">
-                <p>Saldo do mês anterior:</p>
-                <div id="display-anterior" class="value">R$ 0,00</div>
-                <input type="hidden" id="valor-anterior" value="0">
+        <!-- TAB: CALENDARIO -->
+        <section id="tab-calendario" class="tab-content">
+            <header class="page-header">
+                <h2>Calendario</h2>
+            </header>
+            <div class="card">
+                <div class="calendar-header">
+                    <button onclick="mudarMes(-1)" class="btn-nav">&lt;</button>
+                    <h3 id="mes-ano"></h3>
+                    <button onclick="mudarMes(1)" class="btn-nav">&gt;</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sab</span>
+                </div>
+                <div id="calendario-dias" class="calendar-days"></div>
             </div>
-            <hr>
-            <div class="results">
-                <div class="res-item">Total Disponível: <span id="res-total">R$ 0,00</span></div>
-                <div class="res-item sobra">Sobra Final: <span id="res-sobra">R$ 0,00</span></div>
+            <div id="dia-detalhes" class="card day-details" style="display:none;">
+                <h3 id="dia-selecionado-titulo"></h3>
+                <ul id="dia-transacoes"></ul>
             </div>
-            <button onclick="fecharMes()" class="btn-finish">🏁 FECHAR MÊS E ARQUIVAR</button>
-        </div>
-    </div>
+        </section>
 
-    <section class="card history-section">
-        <h3>📂 Histórico de Meses Passados</h3>
-        <div id="lista-historico" class="history-grid"></div>
-    </section>
-</div>
+        <!-- TAB: LEMBRETES -->
+        <section id="tab-lembretes" class="tab-content">
+            <header class="page-header">
+                <h2>Lembretes</h2>
+            </header>
+            <div class="card">
+                <h3>Novo Lembrete</h3>
+                <div class="reminder-form">
+                    <input type="text" id="lembrete-titulo" placeholder="Titulo do evento">
+                    <div class="form-row">
+                        <input type="date" id="lembrete-data">
+                        <input type="time" id="lembrete-hora">
+                    </div>
+                    <input type="text" id="lembrete-local" placeholder="Local (opcional)">
+                    <button onclick="adicionarLembrete()" class="btn-add green">Adicionar</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Proximos Eventos</h3>
+                <ul id="lista-lembretes" class="reminders-list"></ul>
+            </div>
+        </section>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        <!-- TAB: VICIOS -->
+        <section id="tab-vicios" class="tab-content">
+            <header class="page-header">
+                <h2>Controle de Vicios</h2>
+            </header>
+            <div class="card">
+                <h3>Novo Vicio</h3>
+                <div class="vice-form">
+                    <input type="text" id="vicio-nome" placeholder="Nome do vicio">
+                    <button onclick="adicionarVicio()" class="btn-add purple">Adicionar</button>
+                </div>
+            </div>
+            <div id="lista-vicios" class="vices-list"></div>
+        </section>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAt0EE0a7B9Tb0bC4CtORk5glBWVuIz2Vw", 
-    authDomain: "devfinance-4f0a0.firebaseapp.com",
-    projectId: "devfinance-4f0a0",
-    storageBucket: "devfinance-4f0a0.appspot.com",
-    messagingSenderId: "305244990522",
-    appId: "1:305244990522:web:254d881fedc414c11a1903"
-  };
+        <!-- TAB: AJUSTES -->
+        <section id="tab-ajustes" class="tab-content">
+            <header class="page-header">
+                <h2>Ajustes</h2>
+            </header>
+            <div class="card">
+                <h3>Aparencia</h3>
+                <div class="theme-toggle">
+                    <span>Tema</span>
+                    <div class="theme-buttons">
+                        <button onclick="setTheme('light')" class="theme-btn" data-theme="light">Claro</button>
+                        <button onclick="setTheme('dark')" class="theme-btn" data-theme="dark">Escuro</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card danger-zone">
+                <h3>Zona de Perigo</h3>
+                <p>Esta acao ira apagar todos os seus dados permanentemente.</p>
+                <button onclick="limparTudo()" class="btn-danger">Excluir Tudo</button>
+            </div>
+        </section>
+    </main>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  
-  // Exportando funções para o window para o script.js usar
-  window.db = db; window.doc = doc; window.setDoc = setDoc; 
-  window.getDoc = getDoc; window.deleteDoc = deleteDoc;
-  window.collection = collection; window.getDocs = getDocs;
-</script>
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
