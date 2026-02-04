@@ -1,3 +1,22 @@
+// ==================== FIREBASE CONFIG ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyD_example_key_here",
+    authDomain: "seu-projeto.firebaseapp.com",
+    databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+    projectId: "seu-projeto",
+    storageBucket: "seu-projeto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abc123"
+};
+
+// Inicializa Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const database = firebase.database();
+
+let currentUser = null;
+let userRef = null;
+
 // ==================== DADOS ====================
 let dados = {
     salario: 0,
@@ -20,17 +39,141 @@ let grafico = null;
 const f = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function salvar() {
-    localStorage.setItem('devfinance_data', JSON.stringify(dados));
-}
-
-function carregar() {
-    const saved = localStorage.getItem('devfinance_data');
-    if (saved) {
-        dados = JSON.parse(saved);
+    if (userRef) {
+        userRef.set(dados);
     }
 }
 
-// ==================== NAVEGACAO ====================
+function carregar() {
+    return new Promise((resolve) => {
+        if (userRef) {
+            userRef.once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    dados = data;
+                    // Garante que arrays existam
+                    dados.fixas = dados.fixas || [];
+                    dados.lazer = dados.lazer || [];
+                    dados.compras = dados.compras || [];
+                    dados.extras = dados.extras || [];
+                    dados.historico = dados.historico || [];
+                    dados.lembretes = dados.lembretes || [];
+                    dados.vicios = dados.vicios || [];
+                }
+                resolve();
+            });
+        } else {
+            resolve();
+        }
+    });
+}
+
+// ==================== AUTENTICAÇÃO ====================
+function mostrarApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-container').style.display = 'flex';
+    document.getElementById('user-email').textContent = currentUser.email;
+}
+
+function mostrarLogin() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+}
+
+function mostrarErro(msg) {
+    document.getElementById('login-error').textContent = msg;
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+    
+    try {
+        await auth.signInWithEmailAndPassword(email, senha);
+    } catch (error) {
+        let msg = 'Erro ao fazer login';
+        if (error.code === 'auth/user-not-found') msg = 'Usuário não encontrado';
+        if (error.code === 'auth/wrong-password') msg = 'Senha incorreta';
+        if (error.code === 'auth/invalid-email') msg = 'E-mail inválido';
+        mostrarErro(msg);
+    }
+});
+
+document.getElementById('btn-cadastrar').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+    
+    if (!email || !senha) {
+        mostrarErro('Preencha e-mail e senha');
+        return;
+    }
+    
+    if (senha.length < 6) {
+        mostrarErro('A senha deve ter pelo menos 6 caracteres');
+        return;
+    }
+    
+    try {
+        await auth.createUserWithEmailAndPassword(email, senha);
+    } catch (error) {
+        let msg = 'Erro ao criar conta';
+        if (error.code === 'auth/email-already-in-use') msg = 'Este e-mail já está em uso';
+        if (error.code === 'auth/invalid-email') msg = 'E-mail inválido';
+        if (error.code === 'auth/weak-password') msg = 'Senha muito fraca';
+        mostrarErro(msg);
+    }
+});
+
+function logout() {
+    auth.signOut();
+}
+
+document.getElementById('btn-logout').addEventListener('click', logout);
+
+// Listener de autenticação
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        userRef = database.ref('users/' + user.uid);
+        
+        // Escuta mudanças em tempo real
+        userRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                dados = data;
+                dados.fixas = dados.fixas || [];
+                dados.lazer = dados.lazer || [];
+                dados.compras = dados.compras || [];
+                dados.extras = dados.extras || [];
+                dados.historico = dados.historico || [];
+                dados.lembretes = dados.lembretes || [];
+                dados.vicios = dados.vicios || [];
+                
+                if (dados.salario) {
+                    document.getElementById('salario').value = dados.salario;
+                }
+                
+                atualizarTudo();
+                renderizarCalendario();
+                renderizarLembretes();
+                renderizarVicios();
+            }
+        });
+        
+        mostrarApp();
+        initApp();
+    } else {
+        currentUser = null;
+        if (userRef) {
+            userRef.off();
+        }
+        userRef = null;
+        mostrarLogin();
+    }
+});
+
+// ==================== NAVEGAÇÃO ====================
 function initNavigation() {
     const navItems = document.querySelectorAll('.nav-item, .mobile-nav-item');
     
@@ -38,19 +181,17 @@ function initNavigation() {
         item.addEventListener('click', () => {
             const tab = item.dataset.tab;
             
-            // Update active state
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll(`[data-tab="${tab}"]`).forEach(n => n.classList.add('active'));
             
-            // Show tab content
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
         });
     });
 }
 
-// ==================== TOGGLE PERIODO ====================
+// ==================== TOGGLE PERÍODO ====================
 function initPeriodToggle() {
     const toggleBtns = document.querySelectorAll('.toggle-btn');
     
@@ -64,7 +205,7 @@ function initPeriodToggle() {
     });
 }
 
-// ==================== FINANCAS ====================
+// ==================== FINANÇAS ====================
 function adicionar(tipo) {
     const nome = document.getElementById(`${tipo}-nome`).value;
     const valor = parseFloat(document.getElementById(`${tipo}-valor`).value);
@@ -93,7 +234,6 @@ function adicionar(tipo) {
         dados.extras.push(item);
     }
     
-    // Clear inputs
     document.getElementById(`${tipo}-nome`).value = '';
     document.getElementById(`${tipo}-valor`).value = '';
     if (parcelas !== undefined) {
@@ -273,7 +413,7 @@ function fecharMes() {
     }).filter(it => it.parcelas === 'Sempre' || it.parcelas > 0);
     
     salvar();
-    alert('Mes arquivado!');
+    alert('Mês arquivado!');
     atualizarTudo();
 }
 
@@ -295,18 +435,18 @@ function renderizarHistorico() {
 }
 
 function apagarMes(id) {
-    if (!confirm('Apagar este mes do historico?')) return;
+    if (!confirm('Apagar este mês do histórico?')) return;
     dados.historico = dados.historico.filter(h => h.id !== id);
     salvar();
     renderizarHistorico();
 }
 
-// ==================== CALENDARIO ====================
+// ==================== CALENDÁRIO ====================
 function renderizarCalendario() {
     const container = document.getElementById('calendario-dias');
     const mesAnoEl = document.getElementById('mes-ano');
     
-    const meses = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     
     mesAnoEl.textContent = `${meses[mesCalendario]} ${anoCalendario}`;
@@ -317,14 +457,12 @@ function renderizarCalendario() {
     
     container.innerHTML = '';
     
-    // Empty days
     for (let i = 0; i < primeiroDia; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day empty';
         container.appendChild(div);
     }
     
-    // Days
     for (let dia = 1; dia <= diasNoMes; dia++) {
         const div = document.createElement('div');
         div.className = 'calendar-day';
@@ -372,7 +510,7 @@ function mostrarDetalhesDia(dia, mes, ano) {
     lista.innerHTML = '';
     
     if (transacoes.length === 0) {
-        lista.innerHTML = '<li>Nenhuma transacao neste dia</li>';
+        lista.innerHTML = '<li>Nenhuma transação neste dia</li>';
     } else {
         transacoes.forEach(t => {
             const li = document.createElement('li');
@@ -404,7 +542,7 @@ function adicionarLembrete() {
     const local = document.getElementById('lembrete-local').value;
     
     if (!titulo || !data) {
-        alert('Preencha titulo e data!');
+        alert('Preencha título e data!');
         return;
     }
     
@@ -446,7 +584,7 @@ function renderizarLembretes() {
         li.innerHTML = `
             <div class="reminder-info">
                 <h4>${l.titulo}</h4>
-                <p>${dataFormatada} as ${l.hora}${l.local ? ` - ${l.local}` : ''}</p>
+                <p>${dataFormatada} às ${l.hora}${l.local ? ` - ${l.local}` : ''}</p>
             </div>
             <button class="btn-del" onclick="removerLembrete(${l.id})">X</button>
         `;
@@ -454,12 +592,12 @@ function renderizarLembretes() {
     });
 }
 
-// ==================== VICIOS ====================
+// ==================== VÍCIOS ====================
 function adicionarVicio() {
     const nome = document.getElementById('vicio-nome').value;
     
     if (!nome) {
-        alert('Digite o nome do vicio!');
+        alert('Digite o nome do vício!');
         return;
     }
     
@@ -563,10 +701,7 @@ function loadTheme() {
 
 // ==================== LIMPAR TUDO ====================
 function limparTudo() {
-    if (!confirm('ATENCAO: Isso ira apagar TODOS os seus dados permanentemente. Continuar?')) return;
-    
-    localStorage.removeItem('devfinance_data');
-    localStorage.removeItem('devfinance_theme');
+    if (!confirm('ATENÇÃO: Isso irá apagar TODOS os seus dados permanentemente. Continuar?')) return;
     
     dados = {
         salario: 0,
@@ -582,28 +717,25 @@ function limparTudo() {
     
     document.getElementById('salario').value = '';
     
+    salvar();
     atualizarTudo();
     renderizarCalendario();
     renderizarLembretes();
     renderizarVicios();
-    setTheme('light');
     
     alert('Todos os dados foram apagados!');
 }
 
 // ==================== INIT ====================
-window.onload = function() {
-    carregar();
+function initApp() {
     loadTheme();
     initNavigation();
     initPeriodToggle();
     
-    // Load salary
     if (dados.salario) {
         document.getElementById('salario').value = dados.salario;
     }
     
-    // Salary input listener
     document.getElementById('salario').addEventListener('input', () => {
         dados.salario = parseFloat(document.getElementById('salario').value) || 0;
         salvar();
@@ -615,11 +747,10 @@ window.onload = function() {
     renderizarLembretes();
     renderizarVicios();
     
-    // Update timers every second
     setInterval(atualizarTimers, 1000);
-};
+}
 
-// Global functions for onclick
+// Funções globais para onclick
 window.adicionar = adicionar;
 window.removerItem = removerItem;
 window.fecharMes = fecharMes;
@@ -632,3 +763,4 @@ window.resetarVicio = resetarVicio;
 window.removerVicio = removerVicio;
 window.setTheme = setTheme;
 window.limparTudo = limparTudo;
+window.logout = logout;
